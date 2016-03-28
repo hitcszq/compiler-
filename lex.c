@@ -1,17 +1,59 @@
 #include <stdio.h>
+#include<malloc.h>
 #define ID 36
 #define INT 37
+#define AND 1
+#define ARRAY 2
+#define BEGIN 3
+#define CASE 4 
+#define CONST 5
+#define DIV 6
+#define DO 7 
+#define DOWNTO 8
+#define ELSE 9
+#define END 1
+#define FILE 11 
+#define FOR 12
+#define FUNC 13
+#define GOTO 14
+#define IF 15
+#define IN 16
+#define LABEL 17
+#define MOD 18
+#define NIL 19
+#define NOT 20
+#define OF 21
+#define OR 22
+#define PACKED 23
+#define PROC 24
+#define PROG 25
+#define RECORD 26
+#define REPEAT 27
+#define SET 28
+#define THEN 29
+#define TO 30
+#define TYPE 31
+#define UNTIL 32
+#define VAR 33
+#define WHILE 34
+#define WITH 35
+
 struct token{
 int class;
 int var;
-}
+};
 char cache[1024000];
+static lexeme_begin=0;
+static forward=0;
+char* item_table[50];
+static current_item = 0;
+
 
 void makecache(char filename[])
 {
-	FILE *fp;
-	i=0;
-	*fp=fopen(filename,'r');
+	//FILE* fp;
+	int i=0;
+	FILE *fp=fopen(filename,'r');
 	if (fp==NULL){
 		printf("cannot open sourcefile");
 	}
@@ -24,44 +66,119 @@ void makecache(char filename[])
 	}
 	cache[i]=0x0;
 }
-static lexeme_begin=0;
-static forward=0;
-char* item_table[50];
+
 void retract (int i)
 {
-	forward-=i+1
+	forward -= i + 1;
 }
 char getcharfromcache()
 {	
 	return cache[forward++];
-}
+} 
 int get_token(char* token){
-	switch (token){
-		case "and":
+	if(token== "and")
 			return AND;
-		case "array":
+	else if	(token== "array")
 			return ARRAY;
-		case "begin":
+	else if (token == "begin")	
 			return BEGIN;
-		case "case":
+	else if (token == "case") 
 			return CASE;
-		case "const":
+	else if (token == "const")
 			return CONST;
-		case "div":
+	else if (token == "div")	
 			return DIV;
-		case "do":
+	else if (token == "do")	
 			return DO;
-		case "downto":
+	else if (token == "downto")		
 			return DOWNTO;
-		case "else":
+	else if (token == "else")		
 			return ELSE;
-		case "end":
+	else if (token == "end")	
 			return END;
-	}	
+	else if (token == "file")	
+			return FILE;
+	else if (token == "for")
+			return FOR;
+	else if (token == "function")	
+			return FUNC;
+	else if (token == "goto")	
+			return GOTO;
+	else if (token == "if")	
+			return IF;
+	else if (token == "in")		
+			return IN;
+	else if (token == "label")	
+			return LABEL;
+	else if (token == "mod")	
+			return MOD;
+	else if (token == "nil")	
+			return NIL;
+	else if (token == "not")	
+			return NOT;
+	else if (token == "of")	
+			return OF;
+	else if (token == "or")	
+			return OR;
+	else if (token == "packed")	
+			return PACKED;
+	else if (token == "procedure")	
+			return PROC;
+	else if (token == "program")	
+			return PROG;
+	else if (token == "record")
+			return RECORD;
+	else if (token == "repeat")	
+			return REPEAT;
+	else if (token == "set")
+			return SET;
+	else if (token == "then")
+			return THEN;
+	else if (token == "to")
+			return TO;
+	else if (token == "type")	
+			return TYPE;
+	else if (token == "until")	
+			return UNTIL;
+	else if (token == "var")	
+			return VAR;
+	else if (token == "while")	
+			return WHILE;
+	else if (token == "with")	
+			return WITH;
+	else
+			return ID;
+	
 }
-void install_id()
-
-token scan()
+int install_id(char token[]){//return the index of the token in item_table
+	/*if (current_item==0)
+	{
+		item_table[current_item]=token;
+		return current_item++;
+	}
+	else{*/
+	if (get_token(token)==ID)
+		return -1;
+	for (int i=0;i<current_item;i++)
+	{
+		if(item_table[current_item]==token) return current_item;
+	}
+	item_table[current_item]=token;
+	return current_item++;
+	//}
+}
+char* copytoken()
+{
+	char* copy=(char*)malloc((forward-lexeme_begin+5)*sizeof(char));
+	int j=0;
+	for (int i = lexeme_begin; i < forward;i++)
+	{
+		copy[j++]=cache[i];
+	}
+	copy[j]=0;
+	return copy;
+}
+token* scan()
 {
 	char ch;
 	char* token;
@@ -75,7 +192,7 @@ token scan()
 		ch =getcharfromcache();
 		while(isalnum(ch))
 			{
-				ch=getchar();
+				ch=getcharfromcache();
 			}
 		retract(1);
 		token=copytoken();
@@ -89,7 +206,7 @@ token scan()
 	}
 	retract(1);
 	token =copytoken();
-	retoken={INT,install_num(token)};
+	retoken={INT,install_id(token)};
 	return retoken;
 	}
 	else:
@@ -158,7 +275,7 @@ int main(int argc,char* argv[])
 	while(end==0)
 	{
 		struct token get_token;
-		get_token=scan()
+		get_token = scan();
 		if(get_token.class==0)
 			end=1;
 		else
