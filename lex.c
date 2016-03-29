@@ -197,7 +197,7 @@ token* scan()
 		retract(1);
 		token=copytoken();
 		retoken={get_token(token),install_id(token)};
-		return retoken;
+		return &retoken;
 	}
 	else if(isdigit(ch)){
 	ch=getchar();
@@ -275,7 +275,7 @@ int main(int argc,char* argv[])
 	while(end==0)
 	{
 		struct token get_token;
-		get_token = scan();
+		*get_token = scan();
 		if(get_token.class==0)
 			end=1;
 		else
