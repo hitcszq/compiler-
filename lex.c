@@ -37,6 +37,12 @@
 #define VAR 33
 #define WHILE 34
 #define WITH 35
+#define ASSIGN 57
+#define COLON 56
+#define COMMA 52
+#define EQ 44
+#define EXP 60
+#define SEMIC 58
 
 struct token{
 int class;
@@ -178,12 +184,12 @@ char* copytoken()
 	copy[j]=0;
 	return copy;
 }
-token* scan()
+struct token* scan()
 {
 	char ch;
-	char* token;
-	ch =getcharfromcache()
-	struct token retoken;
+	char* token_scan;
+	ch = getcharfromcache();
+	//struct token retoken;
 	while(ch==0x20||ch==0x0A||ch ==0x9){//delete the space enter table
 		ch =getcharfromcache();
 		lexeme_begin++;
@@ -195,8 +201,8 @@ token* scan()
 				ch=getcharfromcache();
 			}
 		retract(1);
-		token=copytoken();
-		retoken={get_token(token),install_id(token)};
+		token_scan=copytoken();
+		struct token retoken = { get_token(token_scan), install_id(token_scan) };
 		return &retoken;
 	}
 	else if(isdigit(ch)){
@@ -206,37 +212,39 @@ token* scan()
 	}
 	retract(1);
 	token =copytoken();
-	retoken={INT,install_id(token)};
-	return retoken;
+	struct token retoken = { INT, install_id(token_scan) };
+	return &retoken;
 	}
-	else:
+	else
 	switch (ch){
 		case '*':ch=getchar();
 		if (ch=='*') 
-		{retoken={EXP,0} ; return retoken;}
+		{
+			struct token retoken = { EXP, 0 }; return &retoken;
+		}
 		else{	
 			retract(1);
-			retoken={MULTI,0};
-			return retoken;
+			struct token retoken = { MULTI, 0 };
+			return &retoken;
 		}
 		break;
 		
 		
 		case ':':ch=getchar();
-		if (ch=='=') {retoken ={ASSIGN,0};return retoken;}
+			if (ch == '=') { struct token retoken = { ASSIGN, 0 }; return &retoken; }
 		else{
 			retract(1);
-			retoken={CONLON ,0};
-			return retoken;
+			struct token retoken = { COLON, 0 };
+			return &retoken;
 		}
 		break;
 		
 		
-		case '<':ch=getchar();
+		case '<':ch=getcharfromcache();
 				if (ch=='=') 
 				{	
-				retoken={LE,0};
-				return retoken;
+					struct token retoken = { LE, 0 };
+				return &retoken;
 				}
 				else if (ch=='>') 
 				{
@@ -244,26 +252,25 @@ token* scan()
 				}
 				else{
 						retract(1);
-						retoken={CONLON ,0};
-						return retoken;
+						struct token retoken = { LT, 0 };
+						return &retoken;
 				  }
 				break;
-		case '=':retoken={EQ,0};return retoken;break;
+		case '=':struct token retoken = { EQ, 0 }; return &retoken; 
 		case '>':ch=getchar();
-		if (ch=='=') retoken=(LE,0);return retoken;
-		else if (ch=='>') retoken={GE,0};return retoken;
-		else{
-				 retract(1);
-				 retoken={GT ,0};
-				 return retoken;
-			}
-		break;
-		case '+':retoken={PLUS,0};return retoken;break;
-		case '-':retoken={MINUS,0};return retoken;break;
-		case '/':retoken={RDIV,0};return retoken;break;
-		case ',':retoken={COMMA,0};return retoken;break;
-		case ';':retoken={SEMIC,0};return retoken;break;
-		case 0x0:retoken={0,0};return token;break; 
+			if (ch == '=') { struct token retoken = { GE, 0 }; return &retoken; }
+			else{
+					 retract(1);
+					 struct token retoken = { GT, 0 };
+					 return &retoken;
+				}
+			break;
+		case '+':struct token retoken = { PLUS, 0 }; return &retoken; break;
+		case '-':struct token retoken = { MINUS, 0 }; return &retoken; break;
+		case '/':struct token retoken = { RDIV, 0 }; return &retoken; break;
+		case ',':struct token retoken = { COMMA, 0 }; return &retoken; break;
+		case ';':struct token retoken = { SEMIC, 0 }; return &retoken; break;
+		case 0x0:struct token retoken = { 0, 0 }; return &token; break;
 	}	
 }
 int main(int argc,char* argv[])
