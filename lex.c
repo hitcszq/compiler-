@@ -43,7 +43,16 @@
 #define EQ 44
 #define EXP 60
 #define SEMIC 58
-
+#define PLUS 40
+#define MINUS 41
+#define MULTI 42
+#define RDIV 43
+#define EQ 44
+#define LT 45
+#define GT 46
+#define LE 47
+#define GE 48
+#define NE 49
 struct token{
 int class;
 int var;
@@ -55,11 +64,11 @@ char* item_table[50];
 static current_item = 0;
 
 
-void makecache(char filename[])
+/*void makecache(char filename[])
 {
-	//FILE* fp;
+	FILE *fp;
 	int i=0;
-	FILE *fp=fopen(filename,'r');
+	fp=fopen(filename,'r');
 	if (fp==NULL){
 		printf("cannot open sourcefile");
 	}
@@ -71,7 +80,7 @@ void makecache(char filename[])
 		}	
 	}
 	cache[i]=0x0;
-}
+}*/
 
 void retract (int i)
 {
@@ -211,7 +220,7 @@ struct token* scan()
 	ch=getchar();
 	}
 	retract(1);
-	token =copytoken();
+	token_scan =copytoken();
 	struct token retoken = { INT, install_id(token_scan) };
 	return &retoken;
 	}
@@ -256,7 +265,7 @@ struct token* scan()
 						return &retoken;
 				  }
 				break;
-		case '=':struct token retoken = { EQ, 0 }; return &retoken; 
+		case '=':struct token retoken0 = { EQ, 0 }; return &retoken0; 
 		case '>':ch=getchar();
 			if (ch == '=') { struct token retoken = { GE, 0 }; return &retoken; }
 			else{
@@ -265,29 +274,42 @@ struct token* scan()
 					 return &retoken;
 				}
 			break;
-		case '+':struct token retoken = { PLUS, 0 }; return &retoken; break;
-		case '-':struct token retoken = { MINUS, 0 }; return &retoken; break;
-		case '/':struct token retoken = { RDIV, 0 }; return &retoken; break;
-		case ',':struct token retoken = { COMMA, 0 }; return &retoken; break;
-		case ';':struct token retoken = { SEMIC, 0 }; return &retoken; break;
-		case 0x0:struct token retoken = { 0, 0 }; return &token; break;
+		case '+':struct token retoken1 = { PLUS, 0 }; return &retoken1; break;
+		case '-':struct token retoken2 = { MINUS, 0 }; return &retoken2; break;
+		case '/':struct token retoken3 = { RDIV, 0 }; return &retoken3; break;
+		case ',':struct token retoken4 = { COMMA, 0 }; return &retoken4; break;
+		case ';':struct token retoken5 = { SEMIC, 0 }; return &retoken5; break;
+		case 0x0:struct token retoken6 = { 0, 0 }; return &retoken6; break;
 	}	
 }
-int main(int argc,char* argv[])
+int main()
 {
-	makecache(argv[1]);
+	//makecache(argv[1]);
+	//FILE *fp;
+	int i = 0;
+	FILE *fp = fopen("test.pascal", "r");
+	if (fp == NULL){
+		printf("cannot open sourcefile");
+	}
+	while (feof(fp)){
+		cache[i++] = fgetc(fp);
+		if (i == 1024000)
+		{
+			printf("memory failed");
+		}
+	}
+	cache[i] = 0x0;
 	int end=0;
 	struct token token_list[100];
 	int token_num=0;
 	while(end==0)
 	{
-		struct token get_token;
-		*get_token = scan();
-		if(get_token.class==0)
+		struct token *get_token = scan();
+		if(get_token->class==0)
 			end=1;
 		else
 			lexeme_begin++;
-			token_list[token_num++]=get_token;
+			token_list[token_num++]=*get_token;
 	}
 	for(int i=0;i<token_num;i++)
 	{
