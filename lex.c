@@ -12,7 +12,7 @@
 #define DOWNTO 8
 #define ELSE 9
 #define END 1
-#define FILE 11 
+//#define FILE 11 
 #define FOR 12
 #define FUNC 13
 #define GOTO 14
@@ -53,22 +53,25 @@
 #define LE 47
 #define GE 48
 #define NE 49
+#define bool int
+#define true 1
+#define false 0
 struct token{
 int classid;
 int var;
 };
 char cache[1024000];
-static lexeme_begin=0;
-static forward=0;
+static int lexeme_begin=0;
+static int forward=0;
 char* item_table[50];
-static current_item = 0;
+static int current_item = 0;
 
 
-/*void makecache(char filename[])
+void makecache(char filename[])
 {
 	FILE *fp;
 	int i=0;
-	fp=fopen(filename,'r');
+	fp=fopen(filename,"r");
 	if (fp==NULL){
 		printf("cannot open sourcefile");
 	}
@@ -80,17 +83,17 @@ static current_item = 0;
 		}	
 	}
 	cache[i]=0x0;
-}*/
+}
 bool isletter(char ch)
 {
-	if ((ch > 'A' and ch<'Z') or(ch>'a' and ch < 'z'))
+	if ((ch > 'A' && ch<'Z') || (ch>'a' && ch < 'z'))
 		return true;
 	else
 		return false;
 }
-bool idletnum(char ch)
+bool isletnum(char ch)
 {
-	if (isletter(ch)or(ch>'0' and ch < '9'))
+	if ( isletter(ch) || (ch>'0'&& ch < '9') )
 		return true;
 	else
 		return false;
@@ -98,7 +101,7 @@ bool idletnum(char ch)
 
 bool isdigit(char ch)
 {
-	if (ch>'0' and ch < '9')
+	if (ch>'0' &&ch < '9')
 		return true;
 	else
 		return false;
@@ -132,8 +135,8 @@ int get_token(char* token){
 			return ELSE;
 	else if (token == "end")	
 			return END;
-	else if (token == "file")	
-			return FILE;
+	//else if (token == "file")	
+			//return FILE;
 	else if (token == "for")
 			return FOR;
 	else if (token == "function")	
@@ -213,6 +216,7 @@ char* copytoken()
 		copy[j++]=cache[i];
 	}
 	copy[j]=0;
+	lexeme_begin = forward;
 	return copy;
 }
 struct token* scan()
@@ -297,7 +301,6 @@ struct token* scan()
 					 retoken.classid = GT; retoken.var = 0;
 					 return &retoken;
 				}
-			break;
 		case '+':retoken.classid = PLUS; retoken.var = 0; return &retoken;
 		case '-':retoken.classid = MINUS; retoken.var = 0; return &retoken; 
 		case '/':retoken.classid = RDIV; retoken.var = 0; return &retoken; 
@@ -308,22 +311,7 @@ struct token* scan()
 }
 int main()
 {
-	//makecache(argv[1]);
-	//FILE *fp;
-	int i = 0;
-	FILE *fp;
-	fp=fopen("test.pascal", "r");
-	if (fp == NULL){
-		printf("cannot open sourcefile");
-	}
-	while (feof(fp)){
-		cache[i++] = fgetc(fp);
-		if (i == 1024000)
-		{
-			printf("memory failed");
-		}
-	}
-	cache[i] = 0x0;
+	makecache("test.pascal");
 	int end=0;
 	struct token token_list[100];
 	int token_num=0;
