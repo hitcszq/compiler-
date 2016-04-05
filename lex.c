@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include<malloc.h>
+#include <stdlib.h>
+#include<errno.h>
 #define ID 36
 #define INT 37
 #define AND 1
@@ -71,12 +73,15 @@ void makecache(char filename[])
 {
 	FILE *fp;
 	int i=0;
+	char ch;
 	fp=fopen(filename,"r");
 	if (fp==NULL){
 		printf("cannot open sourcefile");
+		printf("errno is: %d\n", errno);
+		exit;
 	}
-	while(feof(fp)){
-		cache[i++]=fgetc(fp);
+	while ( (ch=fgetc(fp) )!= EOF){
+		cache[i++]=ch;
 		if( i==1024000)
 		{
 			printf ("memory failed");
@@ -197,7 +202,7 @@ int install_id(char token[]){//return the index of the token in item_table
 		return current_item++;
 	}
 	else{*/
-	if (get_token(token)==ID)
+	if (get_token(token)!=ID)
 		return -1;
 	for (int i=0;i<current_item;i++)
 	{
@@ -312,6 +317,13 @@ struct token* scan()
 int main()
 {
 	makecache("test.pascal");
+	for (int i=0;; i++)
+	{
+		if (cache[i] != 0x0)
+			printf("%c", cache[i]);
+		else
+			break;
+	}
 	int end=0;
 	struct token token_list[100];
 	int token_num=0;

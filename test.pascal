@@ -1,4 +1,4 @@
- Program Ex12;                             
+Program Ex12;
 
   Var a,m : integer;     
 
