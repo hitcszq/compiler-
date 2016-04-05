@@ -91,14 +91,14 @@ void makecache(char filename[])
 }
 bool isletter(char ch)
 {
-	if ((ch > 'A' && ch<'Z') || (ch>'a' && ch < 'z'))
+	if ((ch >= 'A' && ch<='Z') || (ch>='a' && ch <= 'z'))
 		return true;
 	else
 		return false;
 }
 bool isletnum(char ch)
 {
-	if ( isletter(ch) || (ch>'0'&& ch < '9') )
+	if ( isletter(ch) || (ch>='0'&& ch <= '9') )
 		return true;
 	else
 		return false;
@@ -106,14 +106,14 @@ bool isletnum(char ch)
 
 bool isdigit(char ch)
 {
-	if (ch>'0' &&ch < '9')
+	if (ch>='0' &&ch <= '9')
 		return true;
 	else
 		return false;
 }
 void retract (int i)
 {
-	forward -= i + 1;
+	forward -= i;
 }
 char getcharfromcache()
 {	
@@ -214,7 +214,7 @@ int install_id(char token[]){//return the index of the token in item_table
 }
 char* copytoken()
 {
-	char* copy=(char*)malloc((forward-lexeme_begin+5)*sizeof(char));
+	char* copy=(char*)malloc((forward-lexeme_begin+1)*sizeof(char));
 	int j=0;
 	for (int i = lexeme_begin; i < forward;i++)
 	{
@@ -222,6 +222,7 @@ char* copytoken()
 	}
 	copy[j]=0;
 	lexeme_begin = forward;
+	printf("%s", copy);
 	return copy;
 }
 struct token* scan()
@@ -241,6 +242,7 @@ struct token* scan()
 				ch=getcharfromcache();
 			}
 		retract(1);
+		printf("%d,%d", lexeme_begin, forward);
 		token_scan=copytoken();
 		retoken.classid = get_token(token_scan);
 		retoken.var = install_id(token_scan);
@@ -333,7 +335,7 @@ int main()
 		if(get_token->classid==0)
 			end=1;
 		else
-			lexeme_begin++;
+			//lexeme_begin++;
 			token_list[token_num++]=*get_token;
 	}
 	for(int i=0;i<token_num;i++)
