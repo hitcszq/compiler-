@@ -55,6 +55,11 @@
 #define LE 47
 #define GE 48
 #define NE 49
+#define LR_BRAC 50
+#define RR_BRAC 51
+#define Q_MARK 63
+#define STRING 39
+#define F_STOP 54
 #define bool int
 #define true 1
 #define false 0
@@ -81,6 +86,10 @@ void makecache(char filename[])
 		exit;
 	}
 	while ( (ch=fgetc(fp) )!= EOF){
+		if (ch >= 'A'&&ch <= 'Z')
+		{
+			ch = ch - ('A' - 'a');
+		}
 		cache[i++]=ch;
 		if( i==1024000)
 		{
@@ -261,9 +270,21 @@ struct token* scan()
 	
 		return &retoken;
 	}
+	else if (ch=='\''){
+		ch = getcharfromcache();
+		while (ch!='\''){
+			ch = getcharfromcache();
+		}
+		//retract(1);
+		token_scan = copytoken();
+		retoken.classid = STRING;
+		retoken.var = install_id(token_scan);
+
+		return &retoken;
+	}
 	else
 	switch (ch){
-		case '*':ch=getchar();
+	    case '*':ch = getcharfromcache(); 
 			if (ch=='*') 
 			{
 				retoken.classid = EXP; retoken.var = 0;  return &retoken;
@@ -275,7 +296,7 @@ struct token* scan()
 			}
 		
 		
-		case ':':ch=getchar();
+		case ':':ch = getcharfromcache();
 			if (ch == '=') { retoken.classid = ASSIGN; retoken.var = 0; return &retoken; }
 			else{
 				retract(1);
@@ -284,7 +305,7 @@ struct token* scan()
 			}
 		
 		
-		case '<':ch=getcharfromcache();
+		case '<':ch = getcharfromcache();
 				if (ch=='=') 
 				{	
 					retoken.classid = LE; retoken.var = 0;
@@ -299,20 +320,22 @@ struct token* scan()
 						retoken.classid =LT; retoken.var = 0;
 						return &retoken;
 				  }
-				break;
 		case '=':retoken.classid=  EQ;retoken.var= 0 ; return &retoken; 
-		case '>':ch=getchar();
+		case '>':ch = getchar(); return &retoken;
 			if (ch == '=') { retoken.classid = GE; retoken.var = 0;  return &retoken; }
 			else{
 					 retract(1);
 					 retoken.classid = GT; retoken.var = 0;
 					 return &retoken;
 				}
-		case '+':retoken.classid = PLUS; retoken.var = 0; return &retoken;
-		case '-':retoken.classid = MINUS; retoken.var = 0; return &retoken; 
-		case '/':retoken.classid = RDIV; retoken.var = 0; return &retoken; 
-		case ',':retoken.classid = COMMA; retoken.var = 0; return &retoken;  
-		case ';':retoken.classid = SEMIC; retoken.var = 0; return &retoken; 
+		case '+':retoken.classid = PLUS; retoken.var = 0; lexeme_begin++; return &retoken;
+		case '-':retoken.classid = MINUS; retoken.var = 0; lexeme_begin++; return &retoken;
+		case '/':retoken.classid = RDIV; retoken.var = 0; lexeme_begin++; return &retoken;
+		case ',':retoken.classid = COMMA; retoken.var = 0;lexeme_begin++; return &retoken;
+		case ';':retoken.classid = SEMIC; retoken.var = 0; lexeme_begin++; return &retoken;
+		case '(':retoken.classid = LR_BRAC; retoken.var = 0; lexeme_begin++; return &retoken;
+		case ')':retoken.classid = RR_BRAC; retoken.var = 0; lexeme_begin++; return &retoken;
+		case '.':retoken.classid = F_STOP; retoken.var = 0; lexeme_begin++; return &retoken;
 		case 0x0:retoken.classid = 0; retoken.var = 0; return &retoken; 
 	}	
 }
