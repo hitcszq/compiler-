@@ -2,6 +2,7 @@
 #include<malloc.h>
 #include <stdlib.h>
 #include<errno.h>
+#include <string.h>
 #define ID 36
 #define INT 37
 #define AND 1
@@ -13,7 +14,7 @@
 #define DO 7 
 #define DOWNTO 8
 #define ELSE 9
-#define END 1
+#define END 10
 //#define FILE 11 
 #define FOR 12
 #define FUNC 13
@@ -60,6 +61,9 @@
 #define Q_MARK 63
 #define STRING 39
 #define F_STOP 54
+#define LS_BRAC 61
+#define RS_BRAC 62
+#define RANGE 55
 #define bool int
 #define true 1
 #define false 0
@@ -131,73 +135,73 @@ char getcharfromcache()
 int get_token(char* token){
 	if(token== "and")
 			return AND;
-	else if	(token== "array")
+	else if (strcmp(token, "array") == 0)
 			return ARRAY;
-	else if (token == "begin")	
+	else if (strcmp(token, "begin") == 0)
 			return BEGIN;
-	else if (token == "case") 
+	else if (strcmp(token, "case") == 0)
 			return CASE;
-	else if (token == "const")
+	else if (strcmp(token, "const") == 0)
 			return CONST;
-	else if (token == "div")	
+	else if (strcmp(token, "div") == 0)
 			return DIV;
-	else if (token == "do")	
+	else if (strcmp(token, "do") == 0)
 			return DO;
-	else if (token == "downto")		
+	else if (strcmp(token, "downto") == 0)
 			return DOWNTO;
-	else if (token == "else")		
+	else if (strcmp(token, "else") == 0)
 			return ELSE;
-	else if (token == "end")	
+	else if (strcmp(token, "end") == 0)
 			return END;
 	//else if (token == "file")	
 			//return FILE;
-	else if (token == "for")
+	else if (strcmp(token, "for") == 0)
 			return FOR;
-	else if (token == "function")	
+	else if (strcmp(token, "function") == 0)
 			return FUNC;
-	else if (token == "goto")	
+	else if (strcmp(token, "goto") == 0)
 			return GOTO;
-	else if (token == "if")	
+	else if (strcmp(token, "if") == 0)
 			return IF;
-	else if (token == "in")		
+	else if (strcmp(token, "in") == 0)
 			return IN;
-	else if (token == "label")	
+	else if (strcmp(token, "label") == 0)
 			return LABEL;
-	else if (token == "mod")	
+	else if (strcmp(token, "mod") == 0)
 			return MOD;
-	else if (token == "nil")	
+	else if (strcmp(token, "nil") == 0)
 			return NIL;
-	else if (token == "not")	
+	else if (strcmp(token, "not") == 0)
 			return NOT;
-	else if (token == "of")	
+	else if (strcmp(token, "of") == 0)
 			return OF;
-	else if (token == "or")	
+	else if (strcmp(token, "or") == 0)
 			return OR;
-	else if (token == "packed")	
+	else if (strcmp(token, "packed") == 0)
 			return PACKED;
-	else if (token == "procedure")	
+	else if (strcmp(token, "procedure") == 0)
 			return PROC;
-	else if (token == "program")	
+	else if (strcmp(token,"program")==0)	
 			return PROG;
-	else if (token == "record")
+	else if (strcmp(token, "record") == 0)
 			return RECORD;
-	else if (token == "repeat")	
+	else if (strcmp(token, "repeat") == 0)
 			return REPEAT;
-	else if (token == "set")
+	else if (strcmp(token, "set") == 0)
 			return SET;
-	else if (token == "then")
+	else if (strcmp(token, "then") == 0)
 			return THEN;
-	else if (token == "to")
+	else if (strcmp(token, "to") == 0)
 			return TO;
-	else if (token == "type")	
+	else if (strcmp(token, "type") == 0)
 			return TYPE;
-	else if (token == "until")	
+	else if (strcmp(token, "until") == 0)
 			return UNTIL;
-	else if (token == "var")	
+	else if (strcmp(token, "var") == 0)
 			return VAR;
-	else if (token == "while")	
+	else if (strcmp(token, "while") == 0)
 			return WHILE;
-	else if (token == "with")	
+	else if (strcmp(token, "with") == 0)
 			return WITH;
 
 	else
@@ -215,7 +219,7 @@ int install_id(char token[]){//return the index of the token in item_table
 		return -1;
 	for (int i=0;i<current_item;i++)
 	{
-		if(item_table[current_item]==token) return current_item;
+		if(strcmp(item_table[i],token)==0) return i;
 	}
 	item_table[current_item]=token;
 	return current_item++;
@@ -251,7 +255,9 @@ struct token* scan()
 				ch=getcharfromcache();
 			}
 		retract(1);
+		printf("\n");
 		printf("%d,%d", lexeme_begin, forward);
+		printf("\n");
 		token_scan=copytoken();
 		retoken.classid = get_token(token_scan);
 		retoken.var = install_id(token_scan);
@@ -264,6 +270,9 @@ struct token* scan()
 			ch=getcharfromcache();
 		}
 		retract(1);
+		printf("\n");
+		printf("%d,%d", lexeme_begin, forward);
+		printf("\n");
 		token_scan =copytoken();
 		retoken.classid = INT; 
 		retoken.var = install_id(token_scan);
@@ -276,6 +285,9 @@ struct token* scan()
 			ch = getcharfromcache();
 		}
 		//retract(1);
+		printf("\n");
+		printf("%d,%d", lexeme_begin, forward);
+		printf("\n");
 		token_scan = copytoken();
 		retoken.classid = STRING;
 		retoken.var = install_id(token_scan);
@@ -287,20 +299,22 @@ struct token* scan()
 	    case '*':ch = getcharfromcache(); 
 			if (ch=='*') 
 			{
-				retoken.classid = EXP; retoken.var = 0;  return &retoken;
+				retoken.classid = EXP; retoken.var = 0;   lexeme_begin+=2; return &retoken;
 			}
 			else{	
 				retract(1);
 				retoken.classid = MULTI; retoken.var = 0;
+				lexeme_begin++;
 				return &retoken;
 			}
 		
 		
 		case ':':ch = getcharfromcache();
-			if (ch == '=') { retoken.classid = ASSIGN; retoken.var = 0; return &retoken; }
+			if (ch == '=') { retoken.classid = ASSIGN; retoken.var = 0; lexeme_begin+=2; return &retoken; }
 			else{
 				retract(1);
 				retoken.classid = COLON; retoken.var = 0;
+				lexeme_begin++;
 				return &retoken;
 			}
 		
@@ -309,23 +323,27 @@ struct token* scan()
 				if (ch=='=') 
 				{	
 					retoken.classid = LE; retoken.var = 0;
+					lexeme_begin+=2;
 					return &retoken;
 				}
 				else if (ch=='>') 
 				{
+				lexeme_begin+=2;
 				return (NE,0);
 				}
 				else{
 						retract(1);
 						retoken.classid =LT; retoken.var = 0;
+						lexeme_begin++;
 						return &retoken;
 				  }
-		case '=':retoken.classid=  EQ;retoken.var= 0 ; return &retoken; 
-		case '>':ch = getchar(); return &retoken;
-			if (ch == '=') { retoken.classid = GE; retoken.var = 0;  return &retoken; }
+		case '=':retoken.classid = EQ; retoken.var = 0; lexeme_begin++; return &retoken;
+		case '>':ch = getcharfromcache(); 
+			if (ch == '=') { retoken.classid = GE; retoken.var = 0; lexeme_begin+=2;  return &retoken; }
 			else{
 					 retract(1);
 					 retoken.classid = GT; retoken.var = 0;
+					 lexeme_begin++;
 					 return &retoken;
 				}
 		case '+':retoken.classid = PLUS; retoken.var = 0; lexeme_begin++; return &retoken;
@@ -335,8 +353,17 @@ struct token* scan()
 		case ';':retoken.classid = SEMIC; retoken.var = 0; lexeme_begin++; return &retoken;
 		case '(':retoken.classid = LR_BRAC; retoken.var = 0; lexeme_begin++; return &retoken;
 		case ')':retoken.classid = RR_BRAC; retoken.var = 0; lexeme_begin++; return &retoken;
-		case '.':retoken.classid = F_STOP; retoken.var = 0; lexeme_begin++; return &retoken;
+		case '[':retoken.classid = LS_BRAC; retoken.var = 0; lexeme_begin++; return &retoken;
+		case ']':retoken.classid = RS_BRAC; retoken.var = 0; lexeme_begin++; return &retoken;
+		case '.':ch = getcharfromcache();
+			if (ch == '.') { retoken.classid = RANGE; retoken.var = 0; lexeme_begin+=2; return &retoken; }
+			else{
+				retract(1);
+				retoken.classid = F_STOP; retoken.var = 0; lexeme_begin++;
+				return &retoken;
+			}
 		case 0x0:retoken.classid = 0; retoken.var = 0; return &retoken; 
+
 	}	
 }
 int main()
@@ -349,6 +376,7 @@ int main()
 		else
 			break;
 	}
+	printf("\n");
 	int end=0;
 	struct token token_list[100];
 	int token_num=0;
@@ -361,6 +389,7 @@ int main()
 			//lexeme_begin++;
 			token_list[token_num++]=*get_token;
 	}
+	printf("\n");
 	for(int i=0;i<token_num;i++)
 	{
 		printf("%d,%d \n",token_list[i].classid,token_list[i].var);
