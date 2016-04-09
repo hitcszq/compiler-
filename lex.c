@@ -368,7 +368,7 @@ struct token* scan()
 }
 int main()
 {
-	makecache("test.pascal");
+	makecache("test2.pascal");
 	for (int i=0;; i++)
 	{
 		if (cache[i] != 0x0)
