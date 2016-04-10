@@ -64,6 +64,7 @@
 #define LS_BRAC 61
 #define RS_BRAC 62
 #define RANGE 55
+#define REAL 38
 #define bool int
 #define true 1
 #define false 0
@@ -269,6 +270,21 @@ struct token* scan()
 		while(isdigit(ch)){
 			ch=getcharfromcache();
 		}
+		if (ch = '.')
+		{
+			ch = getcharfromcache();
+			while (isdigit(ch)){
+				ch = getcharfromcache();
+			}
+			retract(1);
+			printf("\n");
+			printf("%d,%d", lexeme_begin, forward);
+			printf("\n");
+			token_scan = copytoken();
+			retoken.classid = REAL;
+			retoken.var = install_id(token_scan);
+			return &retoken;
+		}
 		retract(1);
 		printf("\n");
 		printf("%d,%d", lexeme_begin, forward);
@@ -368,7 +384,7 @@ struct token* scan()
 }
 int main()
 {
-	makecache("test2.pascal");
+	makecache("test.pascal");
 	for (int i=0;; i++)
 	{
 		if (cache[i] != 0x0)

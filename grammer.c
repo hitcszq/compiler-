@@ -135,6 +135,77 @@ struct production_state* go(production_state I[], int x)
 		else
 			break;
 	}
+}
+int * firstalpha(int * alpha)
+int * first(production G[], int x)
+{
+	int re_first[50];
+	int cur_first = 0;
+	int continue_flag = 1;
+	for (int i = 0; i < 50; i++)
+	{
+		re_first[i] = -1;
+	}
+	if (x < 10000)
+	{
+		re_first[cur_first++] = x;
+		return re_first;
+	}
+	else{
+		for (int i = 0; i < production_num; i++)
+		{
+			if (G[i].rightside == x && (G[i].leftside[0] < 10000))//首字符是终结符
+			{
+				if (checkinfirst(G[i].leftside[0],re_first)==0)
+					re_first[cur_first++] = G[i].leftside[0];
+			}
+		}
+		while (continue_flag)
+		{
+			for (int i = 0; i < production_num; i++)
+			{
+				if (G[i].rightside == x && (G[i].leftside[0] >= 10000))//首字符是非终结符
+				{
+					for (int j = 0; j < production_num; j++)
+					{
+						if (G[j].rightside == G[i].leftside[0] && first(G, G[j].rightside)[0] != -1)//递归求first(G,G[j].rightside)
+						{
+							int k = 0;
+							while (checkinfirst(first(G, G[j].rightside)[k]), re_first)
+							{
+								re_first[cur_first++] = first(G, G[j].rightside)[k];
+							}
+						}
+						else{
+							continue_flag = 0;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+int checkinfirst(int x, int first[])
+{
+	int inflag = 0;
+	for (int i = 0; i < 50; i++)
+	{
+		if (first[i] != -1)
+		{
+			if (first[i] == x)
+			{
+				inflag = 1;
+				break;
+			}
+		}
+	}
+	return inflag;
+}
+struct production_state** makestateset(production_state G[])//传入所有的产生式产生的初始状态集
+{
+	struct production_state stateset[100][50];
+	production_state start_state[50];
 
-	
+	start_state = closure(G[0]);
+
 }
