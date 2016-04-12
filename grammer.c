@@ -1,11 +1,13 @@
 #include <stdio.h>
 struct production{
-	int rightside;//产生式左端
-	int leftside[100];//产生式右端， 从10000开始编码非终结符
+	int leftside;//产生式左端
+	int rightside[100];//产生式右端， 从10000开始编码非终结符
+	struct production* next;
 };
 struct production_state{
 	struct production prod;
 	int state;
+	struct production_state* next;
 };
 struct production production_list[200];
 static int production_num = 0;
@@ -55,85 +57,80 @@ struct production* std_production(char* p)
 		}
 	}
 }
-struct production_state* closure(production_state  proc)//求闭包
+struct production_state* closure(production_state*  proc)//求闭包
 {
-	struct production_state production_state_return[50];
-	for (int i = 0; i < 50; i++)//设定项目集中产生式状态的默认值
-	{
-		production_state_return[i].prod.rightside = -1;
-	}
-	int cur_state = 0;
-	production_state_return[cur_state++] = proc;
+	struct production_state* production_state_return_head;
+	struct production_state* p;
+	production_state_return_head = proc;
 	int expansion = 1;
-	int production_index[50];
-	int inflag = 0;
-	for (int i = 0; i < production_num; i++)
-	{
-		if (proc.prod == production_list[i])
-		{
-			production_index[0] = i;
-			break;
-		}
-	}
+	int expansionflag = 0;
 	while (expansion)
 	{
-		for (int i = 0; i < cur_state; i++)
+		p = production_state_return_head;
+		while (p!=NULL)
 		{
-			int ex_var = production_state_return[i].prod.leftside[production_state_return[i].state];
+			int ex_var = p->prod.rightside[p->state];
 			if (ex_var >= 10000){
 				for (int j = 0; j < production_num; j++)
 				{
-					if (production_list[j].rightside == ex_var)
+					if (production_list[j].leftside == ex_var &&checkinclosure(production_state_return_head, production_list[j])==0)
 					{
-						for (int k = 0; k < cur_state; k++)//判断该产生式是否已经在闭包中
-						{
-							if (production_index[k] == j)
-							{
-								inflag = 1;
-								break;
-							}
-						}
-						if (inflag != 1)//不在闭包中
-						{
-							//inflag = 0;
-							production_index[cur_state] = j;
-							production_state_return[cur_state].prod.rightside = ex_var;
-							production_state_return[cur_state].prod.leftside = production_list[j].leftside;
-							production_state_return[cur_state].state = 0;
-						}
+							expansionflag = 1;//扩充了闭包，应该继续扩充
+							struct production_state* new_state = (struct production_state *)malloc(sizeof(struct production_state));
+							new_state->prod = production_list[j];
+							new_state->next = production_state_return_head->next;
+							production_state_return_head->next = new_state;
+							new_state->state = 0;
 					}
 				}
 			}
+			p = p->next;
 		}
-		if (flag = 0)
+		if (expansionflag = 0)//无法继续扩充闭包，退出
 			expansion = 0;
-		else:
-			flag = 1;
 	}
 }
-
-struct production_state* go(production_state I[], int x)
+int checkinclosure(production_state *head, production *pr)
 {
-	struct production_state production_state_return[50];//后续项目集
-	struct production_state production_stateset_return[50];//后续项目集闭包
-	int curstate = 0;
-	int curset = 0;
-	for (int i = 0; i < 50; i++)//设定项目集中产生式状态的默认值
+	int inflag = 0;
+	while (head!=NULL)
 	{
-		production_state_return[i].prod.rightside = -1;
-	}
-	for (int i = 0; i < 50; i++)
-	{
-		if (I[i].prod.rightside != -1)//求参数项目集的后续项目集
+		if (*pr = head->prod)//产生式结构体值的比较？？？可能会出问题
 		{
-			if (I[i].prod.leftside[I[i].state] == x)
-			{
-				production_state_return[curstate++] = I[i];
-				(production_state_return[curstate - 1].state)++;
-			}
-		}
-		else
+			return inflag;
 			break;
+		}
+		head = head->next;
+	}
+	return inflag;
+}
+
+
+struct production_state* go(production_state* I, int x)
+{
+	//struct production_state* production_state_return=NULL;//后续项目集
+	struct production_state* production_stateset_return = (struct production_state *)malloc(sizeof(struct production_state));//后续项目集闭包
+	struct production_state* pI = I;
+	struct production_state* p_return = NULL;
+	
+	while (pI!=NULL){
+			if (pI->prod.leftside[pI->state] == x)
+			{
+				if (p_return == NULL)//后续项目集还没有元素
+				{
+					production_stateset_return->next = NULL;
+					production_stateset_return->state = pI->state + 1;
+					production_stateset_return->prod = pI->prod;
+					p_return = production_stateset_return;
+				}
+				else{
+					p_return = (struct production_state *)malloc(sizeof(struct production_state));
+					p_return->next = production_stateset_return->next;
+					p_return->state = pI->state + 1;
+					production_stateset_return->prod = pI->prod;
+				}
+			}
+			pI = pI->next;
 	}
 }
 int * firstalpha(int * alpha)
