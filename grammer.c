@@ -1,7 +1,7 @@
 #include <stdio.h>
 struct production{
 	int leftside;//产生式左端
-	int rightside[100];//产生式右端， 从10000开始编码非终结符
+	int rightside[100];//产生式右端， 从10000开始编码非终结符,10000代表P'，即规约终结标志 从0开始编码终结符（对应的宏），0表示空，
 	struct production* next;
 };
 struct production_state{
@@ -151,29 +151,30 @@ int * first(production G[], int x)
 	else{
 		for (int i = 0; i < production_num; i++)
 		{
-			if (G[i].rightside == x && (G[i].leftside[0] < 10000))//首字符是终结符
+			if (G[i].leftside == x && (G[i].rightside[0] < 10000))//首字符是终结符
 			{
-				if (checkinfirst(G[i].leftside[0],re_first)==0)
-					re_first[cur_first++] = G[i].leftside[0];
+				if (checkinfirst(G[i].rightside[0],re_first)==0)
+					re_first[cur_first++] = G[i].rightside[0];
 			}
 		}
 		while (continue_flag)
 		{
 			for (int i = 0; i < production_num; i++)
 			{
-				if (G[i].rightside == x && (G[i].leftside[0] >= 10000))//首字符是非终结符
+				if (G[i].leftside == x && (G[i].rightside[0] >= 10000))//首字符是非终结符
 				{
 					for (int j = 0; j < production_num; j++)
 					{
-						if (G[j].rightside == G[i].leftside[0] && first(G, G[j].rightside)[0] != -1)//递归求first(G,G[j].rightside)
+						if (G[j].leftside == G[i].rightside[0] && first(G, G[j].leftside)[0] != -1)//递归求first(G,G[j].rightside)
 						{
 							int k = 0;
-							while (checkinfirst(first(G, G[j].rightside)[k]), re_first)
+							while (checkinfirst(first(G, G[j].leftside)[k], re_first) && first(G, G[j].leftside)[k]!=-1)
 							{
-								re_first[cur_first++] = first(G, G[j].rightside)[k];
+								re_first[cur_first++] = first(G, G[j].rightside)[k++];
 							}
 						}
-						else{
+						else
+						{
 							continue_flag = 0;
 						}
 					}
@@ -182,6 +183,7 @@ int * first(production G[], int x)
 		}
 	}
 }
+
 int checkinfirst(int x, int first[])
 {
 	int inflag = 0;
@@ -198,6 +200,7 @@ int checkinfirst(int x, int first[])
 	}
 	return inflag;
 }
+
 struct production_state** makestateset(production_state G[])//传入所有的产生式产生的初始状态集
 {
 	struct production_state stateset[100][50];
