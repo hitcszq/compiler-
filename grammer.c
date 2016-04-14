@@ -133,7 +133,38 @@ struct production_state* go(production_state* I, int x)
 			pI = pI->next;
 	}
 }
-int * firstalpha(int * alpha)
+int * firstalpha(int  alpha[])
+{
+	int re_first[50];
+	int cur_first = 0;
+	for (int i = 0; i < 50; i++)
+	{
+		re_first[i] = -1;
+	}
+	int k = 0;
+	while (checkinfirst(first(G, alpha[0])[k], re_first) && first(G, alpha[0])[k] != -1)
+	{
+		if (first(G, alpha[0])[k] != 0)//去除空
+			re_first[cur_first++] = first(G, G[j].rightside)[k++];
+	}
+	int j = 1;
+	while (checkinfirst(0, first(G, alpha[j]) && alpha[j] != -1)
+	{
+		int kk = 0;
+		while (checkinfirst(first(G, alpha[j])[kk], re_first) && first(G, alpha[j])[kk] != -1)
+		{
+			if (first(G, alpha[0])[kk] != 0)//去除空
+				re_first[cur_first++] = first(G, G[j].rightside)[kk++];
+		}
+		j++;
+	}
+	if (alpha[j] == -1)//全可以推出空
+	{
+		re_first[cur_first++] = 0;
+	}
+	return re_first;
+
+}
 int * first(production G[], int x)
 {
 	int re_first[50];
@@ -168,9 +199,10 @@ int * first(production G[], int x)
 						if (G[j].leftside == G[i].rightside[0] && first(G, G[j].leftside)[0] != -1)//递归求first(G,G[j].rightside)
 						{
 							int k = 0;
-							while (checkinfirst(first(G, G[j].leftside)[k], re_first) && first(G, G[j].leftside)[k]!=-1)
+							while (checkinfirst(first(G, G[j].leftside)[k], re_first) && first(G, G[j].leftside)[k] != -1 )
 							{
-								re_first[cur_first++] = first(G, G[j].rightside)[k++];
+								if (first(G, G[j].leftside)[k] != 0)//去除空
+									re_first[cur_first++] = first(G, G[j].rightside)[k++];
 							}
 						}
 						else
@@ -179,9 +211,37 @@ int * first(production G[], int x)
 						}
 					}
 				}
+				if (G[i].leftside == x)
+				{
+					int m = 0;
+					int emptyflag = 0;
+					while (G[i].rightside[m] != -1 and checkinfirst(0, first(G, G[i].rightside[m]))
+					{
+						m++;
+						emptyflag = 1;
+					}
+					if (emptyflag = 1)//m为产生式右端第一个不能产生空的非终结符索引
+					{
+						for (int h = 0; h < m; h++)
+						{
+							int k2 = 0;
+							while (checkinfirst(first(G, G[i].rightside)[k2], re_first) && first(G, G[i].rightside)[k2] != -1)
+							{
+								if (first(G, G[i].rightside)[k2] != 0)//去除空
+									re_first[cur_first++] = first(G, G[j].rightside)[k2++];
+							}
+						}
+					}
+					if (emptyflag = 1 and G[i].rightside[m] == -1)//产生式所有非终结符均可以推导出空
+					{
+						re_first[cur_first++] = 0;
+					}
+
+				}
 			}
 		}
 	}
+	return re_first;
 }
 
 int checkinfirst(int x, int first[])
@@ -201,7 +261,7 @@ int checkinfirst(int x, int first[])
 	return inflag;
 }
 
-struct production_state** makestateset(production_state G[])//传入所有的产生式产生的初始状态集
+struct production_state** makestateset(production_state G)//传入所有的产生式产生的初始状态集
 {
 	struct production_state stateset[100][50];
 	production_state start_state[50];
