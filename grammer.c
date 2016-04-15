@@ -9,12 +9,14 @@ struct production_state{
 	int state;
 	struct production_state* next;
 };
+
 struct production production_list[200];
 static int production_num = 0;
 static int vara[500];
 static int vara_num;
+#define statesetnum 100
 //产生式A~a
-void read_production(char production_file[])
+/*void read_production(char production_file[])
 {
 	struct production *proc;
 	FILE *fp = fopen(production_file, "r");
@@ -56,8 +58,8 @@ struct production* std_production(char* p)
 			
 		}
 	}
-}
-struct production_state* closure(production_state*  proc)//求闭包
+}*/
+struct production_state* closure(struct production_state*  proc)//求闭包
 {
 	struct production_state* production_state_return_head;
 	struct production_state* p;
@@ -89,13 +91,30 @@ struct production_state* closure(production_state*  proc)//求闭包
 		if (expansionflag = 0)//无法继续扩充闭包，退出
 			expansion = 0;
 	}
+	return production_state_return_head;
 }
-int checkinclosure(production_state *head, production *pr)
+int proequal(struct production p1, struct production p2)//p1,p2是否相等
+{
+	int equal = 1;
+	if (p1.leftside != p2.leftside)
+		equal = 0;
+	int k = 0;
+	while (p1.rightside[k] != -1 || p2.rightside[k] != -1)
+	{
+		if (p1.rightside[k++] != p2.rightside[k++])
+		{
+			equal = 0;
+			break;
+		}
+	}
+	return equal;
+}
+int checkinclosure(struct production_state* head,struct production *pr)
 {
 	int inflag = 0;
 	while (head!=NULL)
 	{
-		if (*pr = head->prod)//产生式结构体值的比较？？？可能会出问题
+		if (proequal(*pr , head->prod))//产生式结构体值的比较？？？可能会出问题
 		{
 			return inflag;
 			break;
@@ -106,7 +125,7 @@ int checkinclosure(production_state *head, production *pr)
 }
 
 
-struct production_state* go(production_state* I, int x)
+struct production_state* go(struct production_state* I, int x)
 {
 	//struct production_state* production_state_return=NULL;//后续项目集
 	struct production_state* production_stateset_return = (struct production_state *)malloc(sizeof(struct production_state));//后续项目集闭包
@@ -114,7 +133,7 @@ struct production_state* go(production_state* I, int x)
 	struct production_state* p_return = NULL;
 	
 	while (pI!=NULL){
-			if (pI->prod.leftside[pI->state] == x)
+			if (pI->prod.rightside[pI->state] == x)
 			{
 				if (p_return == NULL)//后续项目集还没有元素
 				{
@@ -132,40 +151,9 @@ struct production_state* go(production_state* I, int x)
 			}
 			pI = pI->next;
 	}
+	return production_stateset_return;
 }
-int * firstalpha(int  alpha[])
-{
-	int re_first[50];
-	int cur_first = 0;
-	for (int i = 0; i < 50; i++)
-	{
-		re_first[i] = -1;
-	}
-	int k = 0;
-	while (checkinfirst(first(G, alpha[0])[k], re_first) && first(G, alpha[0])[k] != -1)
-	{
-		if (first(G, alpha[0])[k] != 0)//去除空
-			re_first[cur_first++] = first(G, G[j].rightside)[k++];
-	}
-	int j = 1;
-	while (checkinfirst(0, first(G, alpha[j]) && alpha[j] != -1)
-	{
-		int kk = 0;
-		while (checkinfirst(first(G, alpha[j])[kk], re_first) && first(G, alpha[j])[kk] != -1)
-		{
-			if (first(G, alpha[0])[kk] != 0)//去除空
-				re_first[cur_first++] = first(G, G[j].rightside)[kk++];
-		}
-		j++;
-	}
-	if (alpha[j] == -1)//全可以推出空
-	{
-		re_first[cur_first++] = 0;
-	}
-	return re_first;
-
-}
-int * first(production G[], int x)
+int * first(int x)
 {
 	int re_first[50];
 	int cur_first = 0;
@@ -182,27 +170,27 @@ int * first(production G[], int x)
 	else{
 		for (int i = 0; i < production_num; i++)
 		{
-			if (G[i].leftside == x && (G[i].rightside[0] < 10000))//首字符是终结符
+			if (production_list[i].leftside == x && (production_list[i].rightside[0] < 10000))//首字符是终结符
 			{
-				if (checkinfirst(G[i].rightside[0],re_first)==0)
-					re_first[cur_first++] = G[i].rightside[0];
+				if (checkinfirst(production_list[i].rightside[0], re_first) == 0)
+					re_first[cur_first++] = production_list[i].rightside[0];
 			}
 		}
 		while (continue_flag)
 		{
 			for (int i = 0; i < production_num; i++)
 			{
-				if (G[i].leftside == x && (G[i].rightside[0] >= 10000))//首字符是非终结符
+				if (production_list[i].leftside == x && (production_list[i].rightside[0] >= 10000))//首字符是非终结符
 				{
 					for (int j = 0; j < production_num; j++)
 					{
-						if (G[j].leftside == G[i].rightside[0] && first(G, G[j].leftside)[0] != -1)//递归求first(G,G[j].rightside)
+						if (production_list[j].leftside == production_list[i].rightside[0] && first(production_list[j].leftside)[0] != -1)//递归求first(G,G[j].rightside)
 						{
 							int k = 0;
-							while (checkinfirst(first(G, G[j].leftside)[k], re_first) && first(G, G[j].leftside)[k] != -1 )
+							while (checkinfirst(first(production_list[j].leftside)[k], re_first) == 0 && first(production_list[j].leftside)[k] != -1)
 							{
-								if (first(G, G[j].leftside)[k] != 0)//去除空
-									re_first[cur_first++] = first(G, G[j].rightside)[k++];
+								if (first(production_list[j].leftside)[k] != 0)//去除空
+									re_first[cur_first++] = first(production_list[j].rightside)[k++];
 							}
 						}
 						else
@@ -211,11 +199,11 @@ int * first(production G[], int x)
 						}
 					}
 				}
-				if (G[i].leftside == x)
+				if (production_list[i].leftside == x)
 				{
 					int m = 0;
 					int emptyflag = 0;
-					while (G[i].rightside[m] != -1 and checkinfirst(0, first(G, G[i].rightside[m]))
+					while (production_list[i].rightside[m] != -1 && checkinfirst(0, first(production_list[i].rightside[m])))
 					{
 						m++;
 						emptyflag = 1;
@@ -225,14 +213,14 @@ int * first(production G[], int x)
 						for (int h = 0; h < m; h++)
 						{
 							int k2 = 0;
-							while (checkinfirst(first(G, G[i].rightside)[k2], re_first) && first(G, G[i].rightside)[k2] != -1)
+							while (checkinfirst(first(production_list[i].rightside[h])[k2], re_first) == 0 && first(production_list[i].rightside[h])[k2] != -1)
 							{
-								if (first(G, G[i].rightside)[k2] != 0)//去除空
-									re_first[cur_first++] = first(G, G[j].rightside)[k2++];
+								if (first(production_list[i].rightside[h])[k2] != 0)//去除空
+									re_first[cur_first++] = first(production_list[i].rightside[h])[k2++];
 							}
 						}
 					}
-					if (emptyflag = 1 and G[i].rightside[m] == -1)//产生式所有非终结符均可以推导出空
+					if (emptyflag = 1 && production_list[i].rightside[m] == -1)//产生式所有非终结符均可以推导出空
 					{
 						re_first[cur_first++] = 0;
 					}
@@ -243,6 +231,39 @@ int * first(production G[], int x)
 	}
 	return re_first;
 }
+int * firstalpha(int  alpha[])
+{
+	int re_first[50];
+	int cur_first = 0;
+	for (int i = 0; i < 50; i++)
+	{
+		re_first[i] = -1;
+	}
+	int k = 0;
+	while (checkinfirst(first(alpha[0])[k], re_first)==0 && first(alpha[0])[k] != -1)
+	{
+		if (first(alpha[0])[k] != 0)//去除空
+			re_first[cur_first++] = first(alpha[0])[k++];
+	}
+	int j = 1;
+	while (checkinfirst(0, first(alpha[j])) && alpha[j] != -1)
+	{
+		int kk = 0;
+		while (checkinfirst(first( alpha[j])[kk], re_first)==0 && first( alpha[j])[kk] != -1)
+		{
+			if (first( alpha[0])[kk] != 0)//去除空
+				re_first[cur_first++] = first(production_list[j].rightside)[kk++];
+		}
+		j++;
+	}
+	if (alpha[j] == -1)//全可以推出空
+	{
+		re_first[cur_first++] = 0;
+	}
+	return re_first;
+
+}
+
 
 int checkinfirst(int x, int first[])
 {
@@ -261,11 +282,14 @@ int checkinfirst(int x, int first[])
 	return inflag;
 }
 
-struct production_state** makestateset(production_state G)//传入所有的产生式产生的初始状态集
+struct production_state** makestateset()//传入所有的产生式
 {
-	struct production_state stateset[100][50];
-	production_state start_state[50];
-
-	start_state = closure(G[0]);
+	struct production_state* stateset[statesetnum];
+	stateset[0] = (struct production_state *)malloc(sizeof(struct production_state));
+	struct production_state first_state;
+	first_state.prod = production_list[0];
+	first_state.state = 0;
+	first_state.next = NULL;
+	stateset[0] = closure(&first_state);
 
 }
