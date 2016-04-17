@@ -1,0 +1,15 @@
+program cal_avg_score(input,output);
+	var count, i: integer;
+		score, sum : real;
+	begin
+		write('Input number of students: ');
+		readln(count);
+		for i:=1 to count do
+			begin
+			write('Input', i, 'th student's score: );
+			readln(score);
+			sum = sum + score;
+			end;
+		write('Avg score is ', sum/count);
+		readln;
+	end.
