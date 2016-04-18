@@ -505,8 +505,8 @@ int  make_environment()
 			}
 			stack_num_point = stack_num_point - k;
 			stack_state_point = stack_state_point - k;
-			stack_state[++stack_state_point] = gototable[stack_state[stack_state_point]][production_list[table_item] - 10000].leftside];//栈顶指针可能有问题，错位
-			stack_num[++stack_num_point] = production_list[action[stack_state[stack_state_point], buffer[buffer_point]] - 10000].leftside;
+			stack_num[++stack_num_point] = production_list[table_item - 10000].leftside;//非终结符符压栈
+			stack_state[++stack_state_point] = gototable[stack_state[stack_state_point]][stack_num[stack_num_point]];//新状态压栈
 		}
 		else if (action[stack_state[stack_state_point], buffer[buffer_point]] ==acc){
 			return 0;
