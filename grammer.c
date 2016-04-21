@@ -390,16 +390,16 @@ int lookupproducitonindex(struct production proc)
 		}
 		else{
 			int k = 0;
-			while (proc.rightside[k]!=-1&&production_list[k].rightside[k]!=-1)
+			while (proc.rightside[k]!=-1&&production_list[i].rightside[k]!=-1)
 			{
-				if (proc.rightside[k] != production_list[k].rightside[k]){
+				if (proc.rightside[k] != production_list[i].rightside[k]){
 					equal = 0;
 					break;
 				}
 				k++;
 			}
 		}
-		if (equal = 1)
+		if (equal == 1)
 			return i;
 	}
 }
@@ -493,7 +493,7 @@ void makestateset()//ÀûÓÃ0ºÅ²úÉúÊ½Çó±Õ°ü£¬½Ó×ÅÇóºóĞø×´Ì¬¼¯£¬µÃµ½¹æ·¶ÏîÄ¿¼¯×å,Ìî·
 			}
 			else if (go(stateset[k], i) != NULL && checkinstateset(go(stateset[k], i)) >= 0)//ºóĞøÏîÄ¿¼¯ÒÑ¾­ÊôÓÚµ±Ç°µÄÏîÄ¿¼¯¹æ·¶×å
 			{
-				action[k][i] = checkinstateset(go(stateset[k], i));//Ìî±í//ÒÆ½øÏî
+				gototable[k][i] = checkinstateset(go(stateset[k], i));//Ìî±í//ÒÆ½øÏî
 			}
 		}
 		k++;
@@ -504,7 +504,7 @@ void makestateset()//ÀûÓÃ0ºÅ²úÉúÊ½Çó±Õ°ü£¬½Ó×ÅÇóºóĞø×´Ì¬¼¯£¬µÃµ½¹æ·¶ÏîÄ¿¼¯×å,Ìî·
 		struct production_state* p = stateset[k];
 		while (p!=NULL)
 		{
-			if (p->prod.rightside[p->state + 1] == -1)
+			if (p->prod.rightside[p->state ] == -1)
 				action[k][p->lookahead] =10000+ lookupproducitonindex(p->prod);
 			p = p->next;
 		}
@@ -548,7 +548,7 @@ int  grammer_analysis()
 	int table_item = -1;
 	while (buffer[buffer_point] != -1)
 	{
-		table_item = action[stack_state[stack_state_point]][ buffer[buffer_point]];
+		table_item = action[stack_state[stack_state_point]][ buffer[buffer_point]]; 
 		if (table_item < 10000&&table_item>=0)//ÒÆ½øÏîÄ¿
 		{
 			stack_state[++stack_state_point] = table_item;
@@ -556,17 +556,19 @@ int  grammer_analysis()
 		}
 		else if (table_item >10000){//¹æÔ¼ÏîÄ¿
 			//table_item = action[stack_state[stack_state_point]][ buffer[buffer_point]];
-			printf("%d-->", production_list[table_item-10000].leftside);//´òÓ¡²úÉúÊ½
+			printf("\n%d-->", production_list[table_item-10000].leftside);//´òÓ¡²úÉúÊ½
 			int k = 0;
 			while (production_list[table_item - 10000].rightside[k] != -1)//²úÉúÊ½ÓÒ¶Ë
 			{
-				printf("%d", production_list[table_item - 10000].rightside[k]);
+				printf("%d,", production_list[table_item - 10000].rightside[k]);
 					k++;
 			}
 			stack_num_point = stack_num_point - k;
 			stack_state_point = stack_state_point - k;
 			stack_num[++stack_num_point] = production_list[table_item - 10000].leftside;//·ÇÖÕ½á·û·ûÑ¹Õ»
-			stack_state[++stack_state_point] = gototable[stack_state[stack_state_point]][stack_num[stack_num_point]];//ĞÂ×´Ì¬Ñ¹Õ»
+			int gotoitem;
+			gotoitem = gototable[stack_state[stack_state_point]][stack_num[stack_num_point]];
+			stack_state[++stack_state_point] = gotoitem;//ĞÂ×´Ì¬Ñ¹Õ»
 		}
 		else if (table_item ==acc){
 			return 0;
