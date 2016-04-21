@@ -65,6 +65,13 @@
 #define RS_BRAC 62
 #define RANGE 55
 #define REAL 38
+#define input 64
+#define output 65
+#define integer 66
+#define real 67
+#define Ptrue 70
+#define Pflase 71
+#define step 72
 #define bool int
 #define true 1
 #define false 0
@@ -203,8 +210,15 @@ int get_token(char* token){
 	else if (strcmp(token, "while") == 0)
 			return WHILE;
 	else if (strcmp(token, "with") == 0)
-			return WITH;
-
+		return WITH;
+	else if (strcmp(token, "input") == 0)
+		return input;
+	else if (strcmp(token, "output") == 0)
+		return output;
+	else if (strcmp(token, "integer") == 0)
+		return integer;
+	else if (strcmp(token, "real") == 0)
+		return real;
 	else
 			return ID;
 	
@@ -384,7 +398,8 @@ struct token* scan()
 }
 int main()
 {
-	makecache("test.pascal");
+	makecache("test2.txt");
+	FILE *fp = fopen("lex.txt", "w+");
 	for (int i=0;; i++)
 	{
 		if (cache[i] != 0x0)
@@ -408,6 +423,7 @@ int main()
 	printf("\n");
 	for(int i=0;i<token_num;i++)
 	{
+		fprintf(fp, "%d\n", token_list[i].classid);
 		printf("%d,%d \n",token_list[i].classid,token_list[i].var);
 	}
 }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio.h>
+#include <string.h>
 struct production{
 	int leftside;//²úÉúÊ½×ó¶Ë
 	int rightside[100] ;//²úÉúÊ½ÓÒ¶Ë£¬ ´Ó10000¿ªÊ¼±àÂë·ÇÖÕ½á·û,10000´ú±íP'£¬¼´¹æÔ¼ÖÕ½á±êÖ¾ ´Ó0¿ªÊ¼±àÂëÖÕ½á·û£¨¶ÔÓ¦µÄºê£©£¬0±íÊ¾¿Õ£¬
@@ -21,7 +22,7 @@ struct production_state{
 #define sharp 123
 #define acc 888
 
-struct production production_list[200];
+static struct production production_list[200];
 static int production_num = 0;
 
 static int stack_num[stack_depth] = { -1 };
@@ -43,7 +44,7 @@ static struct production_state* stateset[statesetnum];//¹æ·¶ÏîÄ¿¼¯×å
 void innit_table()
 {
 	for (int i = 0; i < statesetnum; i++){
-		for (int j = 10000; j < vnum; j++)
+		for (int j = 0; j < vnum-10000; j++)
 		{
 			gototable[i][j] = -1;
 		}
@@ -51,7 +52,7 @@ void innit_table()
 	for (int i = 0; i < statesetnum; i++){
 		for (int j = 0; j < tnum; j++)
 		{
-			gototable[i][j] = -1;
+			action[i][j] = -1;
 		}
 	}
 }
@@ -62,13 +63,19 @@ void read_production(char production_file[])
 	struct production *proc = (struct production *)malloc(sizeof(struct production));
 	FILE *fp = fopen(production_file, "r");
 	char StrLine[1024] = {0};             //Ã¿ĞĞ×î´ó¶ÁÈ¡µÄ×Ö·ûÊı
-	char rightnum[10] = { 0 };
+	int max_index = 0;
+	//char rightnum[10] = { -1 };
 	if (fp == NULL)
 		printf("can not open produciton_file");
 	while (!feof(fp))
     {
 		fgets(StrLine, 1024, fp);  //¶ÁÈ¡²úÉúÊ½µÚÒ»ĞĞ£¬²úÉúÊ½Ë÷Òı
-		printf("read production %s from file \n", StrLine);
+		//if (strlen(StrLine) == 0)
+			//break;
+		printf("\nread production %s from file \n", StrLine);
+		
+		max_index = atoi(StrLine);//×î´óË÷Òı²úÉúÊ½
+		
 		fgets(StrLine, 1024, fp);  //¶ÁÈ¡²úÉúÊ½µÚ¶şĞĞ£¬²úÉúÊ½×ó¶Ë
 		proc->leftside = atoi(StrLine);
 		fgets(StrLine, 1024, fp);  //¶ÁÈ¡²úÉúÊ½µÚÈıĞĞ£¬²úÉúÊ½ÓÒ¶Ë
@@ -77,8 +84,9 @@ void read_production(char production_file[])
 		int right_sidex_index = 0;
 		while (StrLine[index] != 0)
 		{
-			if (StrLine[index] = ',')
+			if (StrLine[index] == ',')
 			{
+				char rightnum[10] = { 0 };
 				int k = 0;
 				for (int i = start_index; i < index; i++){
 					rightnum[k++] = StrLine[i];
@@ -88,9 +96,21 @@ void read_production(char production_file[])
 			}
 			index++;
 		}
+		for (int i = right_sidex_index; i < 100;i++)
+			proc->rightside[i] = -1;
 		production_list[production_num++] = *proc;
+		printf("%d-->", production_list[production_num-1].leftside);
+		int m = 0;
+		while (production_list[production_num-1].rightside[m] != -1)
+		{
+			printf("%d,", production_list[production_num-1].rightside[m]);
+			m++;
+		}
+		if (max_index == 42)
+			break;
 	}
     fclose(fp);                     //¹Ø±ÕÎÄ¼ş
+	printf("%d", production_num);
 	return 0;
 }
 
@@ -120,7 +140,7 @@ void read_production(char production_file[])
 		}
 	}
 }*/
-int checkinfirst(int x, int first[])
+int checkinfirst(int x, int first[50])
 {
 	int inflag = 0;
 	for (int i = 0; i < 50; i++)
@@ -144,11 +164,12 @@ int prostateequal(struct production_state* p1, struct production_state* p2)//p1,
 	int k = 0;
 	while (p1->prod.rightside[k] != -1 || p2->prod.rightside[k] != -1)
 	{
-		if (p1->prod.rightside[k++] != p2->prod.rightside[k++])
+		if (p1->prod.rightside[k] != p2->prod.rightside[k])
 		{
 			equal = 0;
 			break;
 		}
+		k++;
 	}
 	if (p1->lookahead != p2->lookahead)
 		equal = 0;
@@ -161,8 +182,9 @@ int checkinclosure(struct production_state* head,struct production_state *pr)
 	int inflag = 0;
 	while (head!=NULL)
 	{
-		if (prostateequal(pr , head))//²úÉúÊ½½á¹¹ÌåÖµµÄ±È½Ï£¿£¿£¿¿ÉÄÜ»á³öÎÊÌâ
+		if (prostateequal(pr , head))//²úÉúÊ½×´Ì¬½á¹¹ÌåÖµµÄ±È½Ï
 		{
+			inflag = 1;
 			return inflag;
 			break;
 		}
@@ -175,27 +197,27 @@ int checkinclosure(struct production_state* head,struct production_state *pr)
 struct production_state* go(struct production_state* I, int x)
 {
 	//struct production_state* production_state_return=NULL;//ºóĞøÏîÄ¿¼¯
-	struct production_state* production_stateset_return = (struct production_state *)malloc(sizeof(struct production_state));//ºóĞøÏîÄ¿¼¯±Õ°ü
+	struct production_state* production_stateset_return = NULL;//ºóĞøÏîÄ¿¼¯±Õ°ü
 	struct production_state* pI = I;
-	struct production_state* p_return = NULL;
+	struct production_state* p_return = (struct production_state *)malloc(sizeof(struct production_state));
 	
 	while (pI!=NULL){
 			if (pI->prod.rightside[pI->state] == x)
 			{
-				if (p_return == NULL)//ºóĞøÏîÄ¿¼¯»¹Ã»ÓĞÔªËØ
+				if (production_stateset_return == NULL)//ºóĞøÏîÄ¿¼¯»¹Ã»ÓĞÔªËØ
 				{
-					production_stateset_return->next = NULL;
-					production_stateset_return->state = pI->state + 1;
-					production_stateset_return->prod = pI->prod;
-					production_stateset_return->lookahead = pI->lookahead;
-					p_return = production_stateset_return;
+					p_return->next = NULL;
+					p_return->state = pI->state + 1;
+					p_return->prod = pI->prod;
+					p_return->lookahead = pI->lookahead;
+					production_stateset_return=p_return;
 				}
 				else{
 					p_return = (struct production_state *)malloc(sizeof(struct production_state));
 					p_return->next = production_stateset_return->next;
 					p_return->state = pI->state + 1;
-					production_stateset_return->prod = pI->prod;
-					production_stateset_return->lookahead = pI->lookahead;
+					p_return->prod = pI->prod;
+					p_return->lookahead = pI->lookahead;
 					production_stateset_return->next = p_return;
 				}
 			}
@@ -205,9 +227,10 @@ struct production_state* go(struct production_state* I, int x)
 }
 int * first(int x)
 {
-	int re_first[50];
+	static int re_first[50] = {-1};
 	int cur_first = 0;
 	int continue_flag = 1;
+	int continue_flag_c = 0;
 	for (int i = 0; i < 50; i++)
 	{
 		re_first[i] = -1;
@@ -228,72 +251,48 @@ int * first(int x)
 		}
 		while (continue_flag)
 		{
+			continue_flag_c = 0;
 			for (int i = 0; i < production_num; i++)
 			{
-				if (production_list[i].leftside == x && (production_list[i].rightside[0] >= 10000))//Ê××Ö·ûÊÇ·ÇÖÕ½á·û
+				if (production_list[i].leftside == x && (production_list[i].rightside[0] >= 10000)&&(production_list[i].rightside[0]!=x))//Ê××Ö·ûÊÇ·ÇÖÕ½á·û,
 				{
 					for (int j = 0; j < production_num; j++)
 					{
 						if (production_list[j].leftside == production_list[i].rightside[0] && first(production_list[j].leftside)[0] != -1)//µİ¹éÇófirst(G,G[j].rightside)
 						{
 							int k = 0;
-							while (checkinfirst(first(production_list[j].leftside)[k], re_first) == 0 && first(production_list[j].leftside)[k] != -1)
+							while (first(production_list[j].leftside)[k] != -1)
 							{
-								if (first(production_list[j].leftside)[k] != 0)//È¥³ı¿Õ
+								if (checkinfirst(first(production_list[j].leftside)[k], re_first) == 0)//È¥³ıÒÑ¾­´æÔÚµÄÖÕ½á·û
+								{
 									re_first[cur_first++] = first(production_list[j].leftside)[k++];
-								else
-									k++;
-							}
-						}
-						else
-						{
-							continue_flag = 0;
-						}
-					}
-				}
-				if (production_list[i].leftside == x)
-				{
-					int m = 0;
-					int emptyflag = 0;
-					while (production_list[i].rightside[m] != -1 && checkinfirst(0, first(production_list[i].rightside[m])))
-					{
-						m++;
-						emptyflag = 1;
-					}
-					if (emptyflag = 1)//mÎª²úÉúÊ½ÓÒ¶ËµÚÒ»¸ö²»ÄÜ²úÉú¿ÕµÄ·ÇÖÕ½á·ûË÷Òı
-					{
-						for (int h = 0; h < m; h++)
-						{
-							int k2 = 0;
-							while (checkinfirst(first(production_list[i].rightside[h])[k2], re_first) == 0 && first(production_list[i].rightside[h])[k2] != -1)
-							{
-								if (first(production_list[i].rightside[h])[k2] != 0)//È¥³ı¿Õ
-									re_first[cur_first++] = first(production_list[i].rightside[h])[k2++];
+									continue_flag_c = 1;//À©Õ¹±ê¼Ç
+								}
 							}
 						}
 					}
-					if (emptyflag = 1 && production_list[i].rightside[m] == -1)//²úÉúÊ½ËùÓĞ·ÇÖÕ½á·û¾ù¿ÉÒÔÍÆµ¼³ö¿Õ
-					{
-						re_first[cur_first++] = 0;
-					}
-
 				}
+			}
+			if (continue_flag_c == 0)//first¼¯Ã»ÓĞÀ©Õ¹
+			{
+				continue_flag = 0;//ÍË³ö
 			}
 		}
 	}
 	return re_first;
 }
 
-int * firstalpha(int  alpha[])
+/*int * firstalpha(int  alpha[50])
 {
-	int re_first[50];
+	int re_first[50] = {-1};
 	int cur_first = 0;
+	int k = 0;
 	for (int i = 0; i < 50; i++)
 	{
 		re_first[i] = -1;
 	}
-	int k = 0;
-	while (checkinfirst(first(alpha[0])[k], re_first)==0 && first(alpha[0])[k] != -1)
+	re_first = first(alpha[0]);
+	/*while (checkinfirst(first(alpha[0])[k], re_first)==0 && first(alpha[0])[k] != -1)
 	{
 		if (first(alpha[0])[k] != 0)//È¥³ı¿Õ
 			re_first[cur_first++] = first(alpha[0])[k++];
@@ -316,62 +315,63 @@ int * firstalpha(int  alpha[])
 		re_first[cur_first++] = 0;
 	}
 	return re_first;
-
-}
+}*/
 struct production_state* closure(struct production_state*  proc)//Çó±Õ°ü,´«Èë¿ÉÒÔÎªÏîÄ¿¼¯ºÏ
 {
 	struct production_state* production_state_return_head;
 	struct production_state* p;
 	production_state_return_head = proc;
-	int first_ah[50];
-	int* re_ahead;
+	int first_ah[50] = {-1};
 	for (int i = 0; i < 50; i++)
 	{
 		first_ah[i] = -1;
 	}
+	int* re_ahead;
 	int expansion = 1;
 	int expansionflag = 0;
 	while (expansion)
 	{
 		p = production_state_return_head;
+		expansionflag = 0;
 		while (p != NULL)
 		{
 			int ex_var = p->prod.rightside[p->state];
 			if (ex_var >= 10000){
 				int k = 1;
 				int n = 0;
-				while (p->prod.rightside[p->state + k] != -1)
+				while (p->prod.rightside[p->state + k] != -1)//Çóµ±Ç°×´Ì¬µÄËÑË÷·ûºÅ
 				{
 					first_ah[n++] = p->prod.rightside[p->state + k];
 					k++;
 				}
 				first_ah[n] = p->lookahead;
-				re_ahead = firstalpha(first_ah);
+				re_ahead = first(first_ah[0]);
 				for (int j = 0; j < production_num; j++)
 				{
 					if (production_list[j].leftside == ex_var)
 					{
-						expansionflag = 1;//À©³äÁË±Õ°ü£¬Ó¦¸Ã¼ÌĞøÀ©³ä
 						int m = 0;
-						while (first_ah[m] != -1){
+						while (*(re_ahead+m )!= -1){
 							struct production_state* new_state = (struct production_state *)malloc(sizeof(struct production_state));
 							new_state->prod = production_list[j];
 							//new_state->next = production_state_return_head->next;
 							//production_state_return_head->next = new_state;
 							new_state->state = 0;
-							new_state->lookahead = first_ah[m];
+							new_state->lookahead = *(re_ahead+m);
 							if (checkinclosure(production_state_return_head, new_state) == 0)
 							{
+								expansionflag = 1;//À©³äÁË±Õ°ü£¬Ó¦¸Ã¼ÌĞøÀ©³ä
 								new_state->next = production_state_return_head->next;
 								production_state_return_head->next = new_state;
 							}
+							m++;
 						}
 					}
 				}
 			}
 			p = p->next;
 		}
-		if (expansionflag = 0)//ÎŞ·¨¼ÌĞøÀ©³ä±Õ°ü£¬ÍË³ö
+		if (expansionflag == 0)//ÎŞ·¨¼ÌĞøÀ©³ä±Õ°ü£¬ÍË³ö
 			expansion = 0;
 	}
 	return production_state_return_head;
@@ -396,11 +396,43 @@ int lookupproducitonindex(struct production proc)
 					equal = 0;
 					break;
 				}
+				k++;
 			}
 		}
 		if (equal = 1)
 			return i;
 	}
+}
+int checkinstateset(struct production_state* check)//µ÷ÓÃÊ±²ÎÊı±ØĞëÅĞ¶Ï£¬²»Îª¿Õ
+{
+	struct production_state *check_state = check;
+	struct production_state *p = check_state;
+	int inflag = 0;
+	int statenum;
+	int k = 0;
+	while (stateset[k] != NULL)
+	{
+		while (p != NULL)
+		{
+			if (checkinclosure(stateset[k], p) == 0)
+				break;
+			else
+				p = p->next;
+		}
+		if (p == NULL)
+		{
+			inflag = 1;
+			statenum = k;
+			break;
+		}
+		k++;
+	}
+	if (inflag == 0)
+	{
+		return -1;
+	}
+	else
+		return k;
 }
 void makestateset()//ÀûÓÃ0ºÅ²úÉúÊ½Çó±Õ°ü£¬½Ó×ÅÇóºóĞø×´Ì¬¼¯£¬µÃµ½¹æ·¶ÏîÄ¿¼¯×å,Ìî·ÖÎö±í
 {
@@ -411,12 +443,23 @@ void makestateset()//ÀûÓÃ0ºÅ²úÉúÊ½Çó±Õ°ü£¬½Ó×ÅÇóºóĞø×´Ì¬¼¯£¬µÃµ½¹æ·¶ÏîÄ¿¼¯×å,Ìî·
 	{
 		stateset[i] = NULL;
 	}
+	printf("makestateset");
+	for (int i = 0; i < production_num; i++)
+	{
+		printf("\n%d-->", production_list[i].leftside);
+		int k = 0;
+		while (production_list[i].rightside[k] != -1)
+		{
+			printf("%d,", production_list[i].rightside[k]);
+			k++;
+		}
+	}
 	stateset[0] = (struct production_state *)malloc(sizeof(struct production_state));
 	struct production_state first_state;
 	first_state.prod = production_list[0];
 	first_state.state = 0;
 	first_state.next = NULL;
-	first_state.lookahead = sharp;//100='#'
+	first_state.lookahead = sharp;//123='#'
 	stateset[0] = closure(&first_state);
 	cur_state++;
 	int k = 0;
@@ -425,26 +468,35 @@ void makestateset()//ÀûÓÃ0ºÅ²úÉúÊ½Çó±Õ°ü£¬½Ó×ÅÇóºóĞø×´Ì¬¼¯£¬µÃµ½¹æ·¶ÏîÄ¿¼¯×å,Ìî·
 		if (stateset[k] == NULL && continue_flag == 1)
 		{
 			k = 0;
-			continue_flag = 1;
+			continue_flag = 0;
 		}
 		for (int i = 0; i < tnum; i++)
 		{
-			if (go(stateset[k], i) != NULL && checkinstateset(go(stateset[k], i)) == 0)//ÅĞ¶ÏºóĞøÏîÄ¿¼¯ÊÇ·ñÒÑ¾­ÊôÓÚµ±Ç°µÄÏîÄ¿¼¯¹æ·¶×å
+			if (go(stateset[k], i) != NULL && checkinstateset(go(stateset[k], i)) == -1)//ÅĞ¶ÏºóĞøÏîÄ¿¼¯ÊÇ·ñÒÑ¾­ÊôÓÚµ±Ç°µÄÏîÄ¿¼¯¹æ·¶×å
 			{
 				stateset[cur_state++] = closure(go(stateset[k], i));
 				action[k][i] = cur_state - 1;//Ìî±í//ÒÆ½øÏî
 				continue_flag = 1;
 			}
+			else if (go(stateset[k], i) != NULL && checkinstateset(go(stateset[k], i)) >= 0)//ºóĞøÏîÄ¿¼¯ÒÑ¾­ÊôÓÚµ±Ç°µÄÏîÄ¿¼¯¹æ·¶×å
+			{
+				action[k][i] = checkinstateset(go(stateset[k], i));//Ìî±í//ÒÆ½øÏî
+			}
 		}
 		for (int i = 10000; i < vnum; i++)
 		{
-			if (go(stateset[k], i) != NULL && checkinstateset(go(stateset[k], i)) == 0)
+			if (go(stateset[k], i) != NULL && checkinstateset(go(stateset[k], i)) == -1)
 			{
 				stateset[cur_state++] = closure(go(stateset[k], i));
 				gototable[k][i] = cur_state - 1;//Ìî±í//×´Ì¬×ªÒÆÏî
 				continue_flag = 1;
 			}
+			else if (go(stateset[k], i) != NULL && checkinstateset(go(stateset[k], i)) >= 0)//ºóĞøÏîÄ¿¼¯ÒÑ¾­ÊôÓÚµ±Ç°µÄÏîÄ¿¼¯¹æ·¶×å
+			{
+				action[k][i] = checkinstateset(go(stateset[k], i));//Ìî±í//ÒÆ½øÏî
+			}
 		}
+		k++;
 	}
 	k = 0;
 	while (stateset[k] != NULL)//¼ÌĞøÌî±í//¹æÔ¼Ïî
@@ -454,6 +506,7 @@ void makestateset()//ÀûÓÃ0ºÅ²úÉúÊ½Çó±Õ°ü£¬½Ó×ÅÇóºóĞø×´Ì¬¼¯£¬µÃµ½¹æ·¶ÏîÄ¿¼¯×å,Ìî·
 		{
 			if (p->prod.rightside[p->state + 1] == -1)
 				action[k][p->lookahead] =10000+ lookupproducitonindex(p->prod);
+			p = p->next;
 		}
 		k++;
 	}
@@ -461,41 +514,48 @@ void makestateset()//ÀûÓÃ0ºÅ²úÉúÊ½Çó±Õ°ü£¬½Ó×ÅÇóºóĞø×´Ì¬¼¯£¬µÃµ½¹æ·¶ÏîÄ¿¼¯×å,Ìî·
 	//return stateset;
 }
 
-void innit_environment(char lex[])
+void innit_environment(char lex[])//¶ÁÈ¡Óï·¨·ÖÎö×Ö·ûÁ÷
 {
 	FILE *fp = fopen(lex, "r");
+	printf("hehe");
 	char StrLine[1024] = { 0 };             //Ã¿ĞĞ×î´ó¶ÁÈ¡µÄ×Ö·ûÊı
 	if (fp == NULL)
 		printf("can not open lex_file");
 	while (!feof(fp))
 	{
 		fgets(StrLine, 1024, fp);  //¶ÁÈ¡´Ê·¨·ÖÎö·ÖÎö½á¹û
+		printf("%s",StrLine);
 		buffer[buffer_point++] = atoi(StrLine);
 	}
 	buffer[buffer_point++] = sharp;
 	fclose(fp);                     //¹Ø±ÕÎÄ¼ş
 	buffer_point = 0;
-	stack_num[++stack_num_point] = sharp;
+	stack_num[++stack_num_point] = sharp;//³õÊ¼»¯·ÖÎöÕ¾£¬×´Ì¬Õ»
 	stack_state[++stack_state_point] = 0;
 	return 0;
 }
 
-int  make_environment()
+int  grammer_analysis()
 {
 	read_production("grammer.txt");
+	printf("\n%d", production_num);
 	innit_table();
+
 	makestateset();
+	printf("xixi");
 	innit_environment("lex.txt");
+
 	int table_item = -1;
 	while (buffer[buffer_point] != -1)
 	{
-		if (action[stack_state[stack_state_point], buffer[buffer_point]] < 10000)//ÒÆ½øÏîÄ¿
+		table_item = action[stack_state[stack_state_point]][ buffer[buffer_point]];
+		if (table_item < 10000&&table_item>=0)//ÒÆ½øÏîÄ¿
 		{
-			stack_state[++stack_state_point] = action[stack_state[stack_state_point], buffer[buffer_point]];
+			stack_state[++stack_state_point] = table_item;
 			stack_num[++stack_num_point] = buffer[buffer_point++];
 		}
-		else if (action[stack_state[stack_state_point], buffer[buffer_point]] >10000){//¹æÔ¼ÏîÄ¿
-			table_item = action[stack_state[stack_state_point], buffer[buffer_point]];
+		else if (table_item >10000){//¹æÔ¼ÏîÄ¿
+			//table_item = action[stack_state[stack_state_point]][ buffer[buffer_point]];
 			printf("%d-->", production_list[table_item-10000].leftside);//´òÓ¡²úÉúÊ½
 			int k = 0;
 			while (production_list[table_item - 10000].rightside[k] != -1)//²úÉúÊ½ÓÒ¶Ë
@@ -508,11 +568,21 @@ int  make_environment()
 			stack_num[++stack_num_point] = production_list[table_item - 10000].leftside;//·ÇÖÕ½á·û·ûÑ¹Õ»
 			stack_state[++stack_state_point] = gototable[stack_state[stack_state_point]][stack_num[stack_num_point]];//ĞÂ×´Ì¬Ñ¹Õ»
 		}
-		else if (action[stack_state[stack_state_point], buffer[buffer_point]] ==acc){
+		else if (table_item ==acc){
 			return 0;
 		}
 		else{
 			return -1;
 		}
+	}
+}
+int main(){
+	int result;
+	result = grammer_analysis();
+	if (result == 0){
+		printf("grammer amalysis successful!");
+	}
+	else if (result == -1){
+		printf("grammer analysis fail");
 	}
 }
