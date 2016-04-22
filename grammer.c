@@ -14,7 +14,7 @@ struct production_state{
 	struct production_state* next;
 };
 
-#define statesetnum 100 //状态转移图状态的数目
+#define statesetnum 70//状态转移图状态的数目
 #define tnum 72 //终结符数目，0-71，0为空
 #define vnum 10012 //非终结符 ，10000-11000
 #define stack_depth 200
@@ -22,7 +22,7 @@ struct production_state{
 #define sharp 123
 #define acc 888
 
-static struct production production_list[200];
+static struct production production_list[20];
 static int production_num = 0;
 
 static int stack_num[stack_depth] = { -1 };
@@ -36,19 +36,19 @@ static int buffer_point = 0;
 
 
 
-static int gototable[statesetnum][vnum - 10000] = {-1};
+//static int gototable[statesetnum][vnum - 10000] = {-1};
 static int action[statesetnum][tnum] = {-1};
 
 static struct production_state* stateset[statesetnum];//规范项目集族
 
 void innit_table()
 {
-	for (int i = 0; i < statesetnum; i++){
+	/*for (int i = 0; i < statesetnum; i++){
 		for (int j = 0; j < vnum-10000; j++)
 		{
 			gototable[i][j] = -1;
 		}
-	}
+	}*/
 	for (int i = 0; i < statesetnum; i++){
 		for (int j = 0; j < tnum; j++)
 		{
@@ -434,7 +434,7 @@ int checkinstateset(struct production_state* check)//调用时参数必须判断，不为空
 	else
 		return k;
 }
-void makestateset()//利用0号产生式求闭包，接着求后续状态集，得到规范项目集族,填分析表
+void makestateset(int gototable[statesetnum][vnum - 10000])//利用0号产生式求闭包，接着求后续状态集，得到规范项目集族,填分析表
 {
 	//struct production_state* stateset[statesetnum];
 	int cur_state = 0;
@@ -527,7 +527,7 @@ void innit_environment(char lex[])//读取语法分析字符流
 		printf("%s",StrLine);
 		buffer[buffer_point++] = atoi(StrLine);
 	}
-	buffer[buffer_point++] = sharp;
+	buffer[buffer_point] = sharp;
 	fclose(fp);                     //关闭文件
 	buffer_point = 0;
 	stack_num[++stack_num_point] = sharp;//初始化分析站，状态栈
@@ -535,13 +535,13 @@ void innit_environment(char lex[])//读取语法分析字符流
 	return 0;
 }
 
-int  grammer_analysis()
+int  grammer_analysis(int gototable[statesetnum][vnum - 10000])
 {
 	read_production("grammer.txt");
 	printf("\n%d", production_num);
 	innit_table();
 
-	makestateset();
+	makestateset(gototable);
 	printf("xixi");
 	innit_environment("lex.txt");
 
@@ -580,7 +580,14 @@ int  grammer_analysis()
 }
 int main(){
 	int result;
-	result = grammer_analysis();
+	static int gototable[statesetnum][vnum - 10000] = { -1 };
+	for (int i = 0; i < statesetnum; i++){
+		for (int j = 0; j < vnum - 10000; j++)
+		{
+			gototable[i][j] = -1;
+		}
+	}
+	result = grammer_analysis(gototable);
 	if (result == 0){
 		printf("grammer amalysis successful!");
 	}
