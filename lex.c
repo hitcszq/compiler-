@@ -284,7 +284,7 @@ struct token* scan()
 		while(isdigit(ch)){
 			ch=getcharfromcache();
 		}
-		if (ch = '.')
+		if (ch == '.')
 		{
 			ch = getcharfromcache();
 			while (isdigit(ch)){

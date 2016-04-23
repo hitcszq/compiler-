@@ -543,7 +543,7 @@ int  grammer_analysis(int gototable[statesetnum][vnum - 10000])
 
 	makestateset(gototable);
 	printf("xixi");
-	innit_environment("lex.txt");
+	innit_environment("lex_back.txt");
 
 	int table_item = -1;
 	while (buffer[buffer_point] != -1)
