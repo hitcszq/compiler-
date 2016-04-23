@@ -14,7 +14,7 @@ struct production_state{
 	struct production_state* next;
 };
 
-#define statesetnum 70//状态转移图状态的数目
+#define statesetnum 200//状态转移图状态的数目
 #define tnum 72 //终结符数目，0-71，0为空
 #define vnum 10012 //非终结符 ，10000-11000
 #define stack_depth 200
@@ -22,7 +22,7 @@ struct production_state{
 #define sharp 123
 #define acc 888
 
-static struct production production_list[20];
+static struct production production_list[50];
 static int production_num = 0;
 
 static int stack_num[stack_depth] = { -1 };
@@ -106,7 +106,7 @@ void read_production(char production_file[])
 			printf("%d,", production_list[production_num-1].rightside[m]);
 			m++;
 		}
-		if (max_index == 42)
+		if (max_index == 24)
 			break;
 	}
     fclose(fp);                     //关闭文件
@@ -549,12 +549,12 @@ int  grammer_analysis(int gototable[statesetnum][vnum - 10000])
 	while (buffer[buffer_point] != -1)
 	{
 		table_item = action[stack_state[stack_state_point]][ buffer[buffer_point]]; 
-		if (table_item < 10000&&table_item>=0)//移进项目
+		if (table_item < 100&&table_item>=0)//移进项目
 		{
 			stack_state[++stack_state_point] = table_item;
 			stack_num[++stack_num_point] = buffer[buffer_point++];
 		}
-		else if (table_item >10000){//规约项目
+		else if (table_item >=10000){//规约项目
 			//table_item = action[stack_state[stack_state_point]][ buffer[buffer_point]];
 			printf("\n%d-->", production_list[table_item-10000].leftside);//打印产生式
 			int k = 0;
