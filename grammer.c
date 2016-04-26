@@ -14,7 +14,7 @@ struct production_state{
 	struct production_state* next;
 };
 
-#define statesetnum 200//状态转移图状态的数目
+#define statesetnum 500//状态转移图状态的数目
 #define tnum 72 //终结符数目，0-71，0为空
 #define vnum 10012 //非终结符 ，10000-11000
 #define stack_depth 200
@@ -444,16 +444,6 @@ void makestateset(int gototable[statesetnum][vnum - 10000])//利用0号产生式求闭包
 		stateset[i] = NULL;
 	}
 	printf("makestateset");
-	for (int i = 0; i < production_num; i++)
-	{
-		printf("\n%d-->", production_list[i].leftside);
-		int k = 0;
-		while (production_list[i].rightside[k] != -1)
-		{
-			printf("%d,", production_list[i].rightside[k]);
-			k++;
-		}
-	}
 	stateset[0] = (struct production_state *)malloc(sizeof(struct production_state));
 	struct production_state first_state;
 	first_state.prod = production_list[0];
@@ -513,7 +503,7 @@ void makestateset(int gototable[statesetnum][vnum - 10000])//利用0号产生式求闭包
 	action[0][ sharp] = acc;
 	//return stateset;
 }
-
+/*
 void innit_environment(char lex[])//读取语法分析字符流
 {
 	FILE *fp = fopen(lex, "r");
@@ -534,7 +524,7 @@ void innit_environment(char lex[])//读取语法分析字符流
 	stack_state[++stack_state_point] = 0;
 	return 0;
 }
-
+*/
 int  grammer_analysis(int gototable[statesetnum][vnum - 10000])
 {
 	read_production("grammer.txt");
@@ -542,14 +532,12 @@ int  grammer_analysis(int gototable[statesetnum][vnum - 10000])
 	innit_table();
 
 	makestateset(gototable);
-	printf("xixi");
-	innit_environment("lex_back.txt");
 
 	int table_item = -1;
 	while (buffer[buffer_point] != -1)
 	{
 		table_item = action[stack_state[stack_state_point]][ buffer[buffer_point]]; 
-		if (table_item < 100&&table_item>=0)//移进项目
+		if (table_item < statesetnum&&table_item>=0)//移进项目
 		{
 			stack_state[++stack_state_point] = table_item;
 			stack_num[++stack_num_point] = buffer[buffer_point++];
@@ -587,6 +575,22 @@ int main(){
 			gototable[i][j] = -1;
 		}
 	}
+	FILE *fp = fopen("lex_back.txt", "r");
+	char StrLine[1024] = { 0 };             //每行最大读取的字符数
+	if (fp == NULL)
+		printf("can not open lex_file");
+	while (!feof(fp))
+	{
+		fgets(StrLine, 1024, fp);  //读取词法分析分析结果
+		printf("%s", StrLine);
+		buffer[buffer_point++] = atoi(StrLine);
+	}
+	buffer[buffer_point] = sharp;
+	fclose(fp);                     //关闭文件
+	buffer_point = 0;
+	
+	stack_num[++stack_num_point] = sharp;//初始化分析站，状态栈
+	stack_state[++stack_state_point] = 0;
 	result = grammer_analysis(gototable);
 	if (result == 0){
 		printf("grammer amalysis successful!");
